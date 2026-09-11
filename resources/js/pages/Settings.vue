@@ -36,7 +36,14 @@
                             </router-link>
                         </div>
                         <div class="text-sm text-gray-500">{{ org.url }}</div>
-                        <div class="text-xs text-gray-400">Статус: {{ org.parse_status }}</div>
+                        <div class="text-xs text-gray-400">
+                            Статус:
+                            <span :class="statusClass(org.parse_status)">{{ statusLabel(org.parse_status) }}</span>
+                        </div>
+                        <button v-if="org.parse_status === 'failed'" @click="retryParse(org.id)"
+                            class="mt-1 text-xs text-red-600 hover:underline">
+                            Повторить парсинг
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -45,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 
 const url = ref('');
@@ -53,6 +60,7 @@ const loading = ref(false);
 const error = ref('');
 const success = ref('');
 const organizations = ref([]);
+let pollTimer = null;
 
 async function loadOrganizations() {
     try {
@@ -60,6 +68,57 @@ async function loadOrganizations() {
         organizations.value = data;
     } catch (e) {
         console.error(e);
+    }
+}
+
+function hasRunningOrganizations() {
+    return organizations.value.some(
+        o => o.parse_status === 'pending' || o.parse_status === 'running'
+    );
+}
+
+function statusLabel(status) {
+    return {
+        pending: 'В очереди',
+        running: 'Парсинг...',
+        ok: 'Готово',
+        failed: 'Ошибка',
+    }[status] || status;
+}
+
+function statusClass(status) {
+    return {
+        pending: 'text-yellow-600',
+        running: 'text-blue-600',
+        ok: 'text-green-600',
+        failed: 'text-red-600',
+    }[status] || 'text-gray-400';
+}
+
+async function retryParse(id) {
+    try {
+        await axios.post(`/api/organizations/${id}/refresh`);
+        await loadOrganizations();
+        schedulePoll();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function schedulePoll() {
+    stopPoll();
+    pollTimer = setTimeout(async () => {
+        await loadOrganizations();
+        if (hasRunningOrganizations()) {
+            schedulePoll();
+        }
+    }, 3000);
+}
+
+function stopPoll() {
+    if (pollTimer) {
+        clearTimeout(pollTimer);
+        pollTimer = null;
     }
 }
 
@@ -72,6 +131,7 @@ async function submit() {
         success.value = 'Организация сохранена!';
         url.value = '';
         await loadOrganizations();
+        schedulePoll();
     } catch (e) {
         error.value = e?.response?.data?.message || 'Не удалось сохранить';
     } finally {
@@ -79,5 +139,14 @@ async function submit() {
     }
 }
 
-onMounted(loadOrganizations);
+onMounted(async () => {
+    await loadOrganizations();
+    if (hasRunningOrganizations()) {
+        schedulePoll();
+    }
+});
+
+onUnmounted(() => {
+    stopPoll();
+});
 </script>
