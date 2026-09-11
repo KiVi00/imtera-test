@@ -54,4 +54,18 @@ class OrganizationController extends Controller
             ->orderByDesc('date')
             ->paginate($perPage);
     }
+
+    public function refresh(Request $request, Organization $organization)
+    {
+        abort_unless($organization->user_id === $request->user()->id, 403);
+
+        $organization->update([
+            'parse_status' => 'pending',
+            'parse_error' => null,
+        ]);
+
+        ParseOrganizationJob::dispatch($organization->id);
+
+        return response()->json($organization);
+    }
 }
