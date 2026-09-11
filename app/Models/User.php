@@ -29,4 +29,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function organizations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Organization::class);
+    }
 }

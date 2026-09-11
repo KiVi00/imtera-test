@@ -2,7 +2,12 @@
     <div class="p-8">
         <div class="flex justify-between mb-6">
             <h1 class="text-2xl font-bold">Дашборд</h1>
-            <button @click="logout" class="text-blue-600 hover:underline">Выйти</button>
+            <div class="flex items-center gap-4">
+                <router-link to="/settings" class="text-blue-600 hover:underline">
+                    Настройки
+                </router-link>
+                <button @click="logout" class="text-blue-600 hover:underline">Выйти</button>
+            </div>
         </div>
         <p>Привет, {{ auth.user?.name }}!</p>
     </div>
