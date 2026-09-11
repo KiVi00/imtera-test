@@ -129,6 +129,9 @@ import axios from 'axios';
 const route = useRoute();
 const router = useRouter();
 
+const organizationId = route.params.id;
+let unmounted = false;
+
 const org = ref(null);
 const loadingOrg = ref(false);
 const errorOrg = ref('');
@@ -160,12 +163,14 @@ const isParsing = computed(() =>
 const isFailed = computed(() => org.value && org.value.parse_status === 'failed');
 
 async function loadOrg(silent = false) {
+    if (unmounted) return;
     if (!silent) {
         loadingOrg.value = true;
         errorOrg.value = '';
     }
     try {
-        const { data } = await axios.get(`/api/organizations/${route.params.id}`);
+        const { data } = await axios.get(`/api/organizations/${organizationId}`);
+        if (unmounted) return;
         org.value = data;
 
         if (data.parse_status === 'pending' || data.parse_status === 'running') {
@@ -174,7 +179,7 @@ async function loadOrg(silent = false) {
             stopPoll();
         }
     } catch (e) {
-        if (!silent) {
+        if (!silent && !unmounted) {
             errorOrg.value = e?.response?.data?.message || 'Не удалось загрузить организацию';
         }
     } finally {
@@ -186,9 +191,11 @@ async function loadOrg(silent = false) {
 
 function schedulePoll() {
     stopPoll();
+    if (unmounted || !organizationId) return;
     pollTimer = setTimeout(async () => {
+        if (unmounted) return;
         await loadOrg(true);
-        if (org.value && org.value.parse_status === 'ok') {
+        if (!unmounted && org.value && org.value.parse_status === 'ok') {
             await loadReviews(1);
         }
     }, 3000);
@@ -202,33 +209,44 @@ function stopPoll() {
 }
 
 async function retryParse() {
+    if (unmounted || !organizationId) return;
     refreshing.value = true;
     try {
-        await axios.post(`/api/organizations/${route.params.id}/refresh`);
+        await axios.post(`/api/organizations/${organizationId}/refresh`);
         await loadOrg();
     } catch (e) {
-        errorOrg.value = e?.response?.data?.message || 'Не удалось перезапустить парсинг';
+        if (!unmounted) {
+            errorOrg.value = e?.response?.data?.message || 'Не удалось перезапустить парсинг';
+        }
     } finally {
-        refreshing.value = false;
+        if (!unmounted) {
+            refreshing.value = false;
+        }
     }
 }
 
 async function loadReviews(p = 1) {
+    if (unmounted || !organizationId) return;
     loadingReviews.value = true;
     errorReviews.value = '';
     try {
-        const { data } = await axios.get(`/api/organizations/${route.params.id}/reviews`, {
+        const { data } = await axios.get(`/api/organizations/${organizationId}/reviews`, {
             params: { page: p, per_page: 50 },
         });
+        if (unmounted) return;
         reviews.value = data.data;
         page.value = data.current_page;
         lastPage.value = data.last_page;
         totalReviews.value = data.total;
         router.replace({ query: { page: p } });
     } catch (e) {
-        errorReviews.value = e?.response?.data?.message || 'Не удалось загрузить отзывы';
+        if (!unmounted) {
+            errorReviews.value = e?.response?.data?.message || 'Не удалось загрузить отзывы';
+        }
     } finally {
-        loadingReviews.value = false;
+        if (!unmounted) {
+            loadingReviews.value = false;
+        }
     }
 }
 
@@ -260,9 +278,8 @@ onMounted(() => {
     loadReviews(initialPage);
 });
 
-onMounted(() => {
-    loadOrg();
-    const initialPage = parseInt(route.query.page) || 1;
-    loadReviews(initialPage);
+onUnmounted(() => {
+    unmounted = true;
+    stopPoll();
 });
 </script>
