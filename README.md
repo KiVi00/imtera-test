@@ -22,7 +22,9 @@
 **Требования:** Docker, WSL2 (для Windows), Composer, Node.js.
 
 Шаги:
-```git clone https://github.com/KiVi00/imtera-test.git
+
+```bash
+git clone https://github.com/KiVi00/imtera-test.git
 cd imtera-test
 composer install
 cp .env.example .env
@@ -30,7 +32,8 @@ cp .env.example .env
 ./vendor/bin/sail artisan key:generate
 ./vendor/bin/sail artisan migrate --seed
 ./vendor/bin/sail npm install
-./vendor/bin/sail npm run dev```
+./vendor/bin/sail npm run dev
+```
 
 Приложение доступно по адресу `http://localhost`.
 
@@ -39,14 +42,19 @@ cp .env.example .env
 ### Воркер очереди
 
 Для парсинга нужен воркер — запускается в **отдельном терминале**:
+```bash
 ./vendor/bin/sail artisan queue:work --tries=3 --timeout=300
+```
 
 ### Переменные окружения
 
 Для SPA-аутентификации через Sanctum должны быть заданы:
+```bash
 SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1
 SESSION_DOMAIN=localhost
 QUEUE_CONNECTION=redis
+```
+
 ---
 
 ## Что реализовано
@@ -66,6 +74,7 @@ QUEUE_CONNECTION=redis
 ### Что я пробовал сначала
 
 Открыл карточку в браузере, посмотрел **Network** и нашёл эндпоинт для подгрузки отзывов:
+
 https://yandex.ru/maps/api/business/fetchReviews?ajax=1&businessId=...&csrfToken=...&offset=0&limit=50
 
 Наивно попробовал повторить этот запрос через `Http::get()` — с тем `csrfToken`, который лежит в `state-view`. Яндекс вернул **новый токен** вместо данных. Добавил `CookieJar`, retry — но получал новый токен снова и снова.
