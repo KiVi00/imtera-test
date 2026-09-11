@@ -13,19 +13,11 @@
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
                         <label class="block text-sm mb-1">Ссылка на Яндекс.Карты</label>
-                        <input
-                            v-model="url"
-                            type="url"
-                            required
-                            placeholder="https://yandex.ru/maps/org/..."
-                            class="w-full border rounded px-3 py-2"
-                        />
+                        <input v-model="url" type="url" required placeholder="https://yandex.ru/maps/org/..."
+                            class="w-full border rounded px-3 py-2" />
                     </div>
-                    <button
-                        type="submit"
-                        :disabled="loading"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                    >
+                    <button type="submit" :disabled="loading"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
                         {{ loading ? 'Сохранение...' : 'Сохранить' }}
                     </button>
                 </form>
@@ -37,7 +29,12 @@
                 <h2 class="text-lg font-semibold mb-4">Мои организации</h2>
                 <ul class="space-y-2">
                     <li v-for="org in organizations" :key="org.id" class="border-b pb-2">
-                        <div class="font-medium">{{ org.title || 'Без названия' }}</div>
+                        <div class="font-medium">
+                            <router-link :to="`/organizations/${org.id}`"
+                                class="font-medium text-blue-600 hover:underline">
+                                {{ org.title || 'Без названия' }}
+                            </router-link>
+                        </div>
                         <div class="text-sm text-gray-500">{{ org.url }}</div>
                         <div class="text-xs text-gray-400">Статус: {{ org.parse_status }}</div>
                     </li>

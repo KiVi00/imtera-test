@@ -36,4 +36,22 @@ class OrganizationController extends Controller
 
         return response()->json($organization, 201);
     }
+
+    public function show(Request $request, Organization $organization)
+    {
+        abort_unless($organization->user_id === $request->user()->id, 403);
+
+        return $organization;
+    }
+
+    public function reviews(Request $request, Organization $organization)
+    {
+        abort_unless($organization->user_id === $request->user()->id, 403);
+
+        $perPage = min((int) $request->input('per_page', 50), 100);
+
+        return $organization->reviews()
+            ->orderByDesc('date')
+            ->paginate($perPage);
+    }
 }

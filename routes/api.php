@@ -15,3 +15,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/organizations', [OrganizationController::class, 'index']);
 Route::post('/organizations', [OrganizationController::class, 'store']);
+
+Route::get('/organizations/{organization}', [OrganizationController::class, 'show']);
+Route::get('/organizations/{organization}/reviews', [OrganizationController::class, 'reviews']);
