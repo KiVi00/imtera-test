@@ -8,7 +8,23 @@
                 </router-link>
             </div>
 
-            <div v-if="loadingOrg" class="text-gray-500">Загрузка...</div>
+            <div v-if="loadingOrg" class="bg-white rounded shadow p-6 mb-6 animate-pulse">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+                    </div>
+                    <div>
+                        <div class="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+                    </div>
+                    <div>
+                        <div class="h-8 bg-gray-200 rounded w-16 mx-auto mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+                    </div>
+                </div>
+                <div class="h-4 bg-gray-200 rounded w-48 mx-auto mt-4"></div>
+            </div>
             <div v-else-if="errorOrg" class="text-red-600">{{ errorOrg }}</div>
             <div v-else-if="org" class="bg-white rounded shadow p-6 mb-6">
 
@@ -53,7 +69,22 @@
                     <span class="text-sm text-gray-500">Стр. {{ page }} из {{ lastPage }}</span>
                 </div>
 
-                <div v-if="loadingReviews" class="p-6 text-gray-500">Загрузка отзывов...</div>
+                <div v-if="loadingReviews" class="divide-y animate-pulse">
+                    <div v-for="i in 5" :key="i" class="p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <div class="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                                <div class="h-3 bg-gray-200 rounded w-24"></div>
+                            </div>
+                            <div class="h-5 bg-gray-200 rounded w-12"></div>
+                        </div>
+                        <div class="space-y-2 mt-3">
+                            <div class="h-4 bg-gray-200 rounded w-full"></div>
+                            <div class="h-4 bg-gray-200 rounded w-11/12"></div>
+                            <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+                        </div>
+                    </div>
+                </div>
                 <div v-else-if="errorReviews" class="p-6 text-red-600">{{ errorReviews }}</div>
 
                 <ul v-else class="divide-y">
@@ -128,9 +159,11 @@ const isParsing = computed(() =>
 
 const isFailed = computed(() => org.value && org.value.parse_status === 'failed');
 
-async function loadOrg() {
-    loadingOrg.value = true;
-    errorOrg.value = '';
+async function loadOrg(silent = false) {
+    if (!silent) {
+        loadingOrg.value = true;
+        errorOrg.value = '';
+    }
     try {
         const { data } = await axios.get(`/api/organizations/${route.params.id}`);
         org.value = data;
@@ -141,16 +174,20 @@ async function loadOrg() {
             stopPoll();
         }
     } catch (e) {
-        errorOrg.value = e?.response?.data?.message || 'Не удалось загрузить организацию';
+        if (!silent) {
+            errorOrg.value = e?.response?.data?.message || 'Не удалось загрузить организацию';
+        }
     } finally {
-        loadingOrg.value = false;
+        if (!silent) {
+            loadingOrg.value = false;
+        }
     }
 }
 
 function schedulePoll() {
     stopPoll();
     pollTimer = setTimeout(async () => {
-        await loadOrg();
+        await loadOrg(true);
         if (org.value && org.value.parse_status === 'ok') {
             await loadReviews(1);
         }
@@ -223,7 +260,9 @@ onMounted(() => {
     loadReviews(initialPage);
 });
 
-onUnmounted(() => {
-    stopPoll();
+onMounted(() => {
+    loadOrg();
+    const initialPage = parseInt(route.query.page) || 1;
+    loadReviews(initialPage);
 });
 </script>
