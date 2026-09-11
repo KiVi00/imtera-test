@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ParseOrganizationJob;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,7 @@ class OrganizationController extends Controller
                 'string',
                 'url',
                 'max:2048',
+                'regex:~yandex\.(ru|com)/maps/org/.+/\d+~',
                 Rule::unique('organizations', 'url')->where('user_id', $request->user()->id),
             ],
         ]);
@@ -30,7 +32,7 @@ class OrganizationController extends Controller
             'parse_status' => 'pending',
         ]);
 
-        // TODO: Здесь будет запуск парсинга
+        ParseOrganizationJob::dispatch($organization->id);
 
         return response()->json($organization, 201);
     }

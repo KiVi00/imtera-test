@@ -28,4 +28,9 @@ class Organization extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function reviews(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 }
