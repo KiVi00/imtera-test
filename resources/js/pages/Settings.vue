@@ -35,7 +35,7 @@
                                 {{ org.title || 'Без названия' }}
                             </router-link>
                         </div>
-                        <div class="text-sm text-gray-500">{{ org.url }}</div>
+                        <div class="text-sm text-gray-500 break-all">{{ org.url }}</div>
                         <div class="text-xs text-gray-400">
                             Статус:
                             <span :class="statusClass(org.parse_status)">{{ statusLabel(org.parse_status) }}</span>
