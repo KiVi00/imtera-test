@@ -134,6 +134,7 @@ https://yandex.ru/maps/api/business/fetchReviews?ajax=1&businessId=...&csrfToken
 
 Логика парсинга **вынесена из контроллеров** в отдельные классы:
 
+```
 app/Services/YandexMaps/
 ├── YandexMapsParser.php        # Получает данные, возвращает DTO
 ├── OrganizationPersister.php   # Сохраняет данные в БД (идемпотентно)
@@ -142,9 +143,9 @@ app/Services/YandexMaps/
 │   └── ParsedReview.php
 └── Exceptions/
     └── ParseException.php      # invalid_url, layout_changed, blocked, empty, http_error
-
 app/Jobs/
 └── ParseOrganizationJob.php    # Оркестратор
+```
 
 ---
 
