@@ -7,20 +7,24 @@
 
             <label class="block mb-3">
                 <span class="text-sm">Email</span>
-                <input v-model="email" type="email" required
-                       class="mt-1 w-full border rounded px-3 py-2" />
+                <input v-model="email" type="email" required autocomplete="username"
+                    class="mt-1 w-full border rounded px-3 py-2" />
             </label>
 
             <label class="block mb-4">
                 <span class="text-sm">Пароль</span>
-                <input v-model="password" type="password" required
-                       class="mt-1 w-full border rounded px-3 py-2" />
+                <input v-model="password" type="password" required autocomplete="current-password"
+                    class="mt-1 w-full border rounded px-3 py-2" />
             </label>
 
             <button type="submit" :disabled="loading"
-                    class="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 disabled:opacity-50">
+                class="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700 disabled:opacity-50">
                 {{ loading ? 'Вход...' : 'Войти' }}
             </button>
+            <p class="mt-4 text-xs text-gray-400 text-center">
+                Тестовая учётка уже заполнена: <br class="sm:hidden" />
+                <span class="font-mono">kirill@gmail.com</span> / <span class="font-mono">password123</span>
+            </p>
         </form>
     </div>
 </template>
